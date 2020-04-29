@@ -1,32 +1,32 @@
 import * as SerialPort from 'serialport';
+import { Communicator } from './Communicator';
+import { SerialCommunicator } from './SerialCommunicator';
+import { Response } from './data';
+import { formatAtCommand, parseResponse } from './util';
 
-class PiCmd {
+export class PiCmd {
 
-    private serialPort: SerialPort
+  private comm: Communicator
 
-    constructor(serialPort: SerialPort) {
-        this.serialPort = serialPort;
-    }
-}
+  constructor(comm: Communicator) {
+    this.comm = comm;
+  }
 
-export function formatAtCommand(command: number): string;
-export function formatAtCommand(command: number, data: Buffer): string;
-export function formatAtCommand(command: number, data?: Buffer): string {
-  const buf = Array.from(data || []);
-  const size = buf.length;
-  const s1 = size & 0x00ff;
-  const s2 = (size & 0xff00) >> 8;
-  const values = [command, s1, s2].concat(buf);
-  const parity = calcParity(values);
-  return `AT*CMD=${values.concat([parity]).map(hexlify).join('')}\r\n`;
-}
+  async request(command: number): Promise<Response>
+  async request(command: number, data: Buffer): Promise<Response>
+  async request(command: number, data?: Buffer): Promise<Response> {
+    const c = formatAtCommand(command, data);
+    await this.comm.connect();
+    await this.comm.send(Buffer.from(c));
+    const buf = await this.comm.receive();
+    const res = parseResponse(buf);
+    await this.comm.disconnect();
+    return res;
+  }
 
-export function hexlify(value: number): string {
-  return ('00' + (value).toString(16)).slice(-2);
-}
-
-export function calcParity(values: number[]): number {
-  return values.reduce((p, v) => {
-    return p ^ v;
-  }, 0x00);
+  static connect(port: string): PiCmd {
+    return new PiCmd(new SerialCommunicator(new SerialPort(port, {
+      baudRate: 115200
+    })));
+  }
 }

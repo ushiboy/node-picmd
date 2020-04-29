@@ -2,9 +2,10 @@
   "name": "picmd",
   "version": "0.1.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --require espower-typescript/guess test/**/*.ts"
+    "build": "tsc",
+    "test": "mocha --require espower-typescript/guess src/**/*.spec.ts"
   },
   "author": "ushiboy",
   "license": "MIT",

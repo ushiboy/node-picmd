@@ -1,7 +1,13 @@
 {
-    "compilerOptions": {
-        "target": "ES5",
-        "module": "CommonJS",
-        "outDir": "lib"
-    }
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "CommonJS",
+    "outDir": "lib"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]
 }
