@@ -1,78 +1,51 @@
-import * as SerialPort from 'serialport';
 import { Communicator } from "./Communicator";
+import { Connection } from "./Connection";
+import { SerialConnection } from "./SerialConnection";
 
 export class ATCommunicator implements Communicator {
 
-  private serialPort: SerialPort
+  private conn: Connection
 
-  constructor(serialPort: SerialPort) {
-    this.serialPort = serialPort;
+  constructor(conn: Connection) {
+    this.conn = conn;
   }
 
   async connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.serialPort.isOpen) {
-        resolve();
-      } else {
-        this.serialPort.open((err) => {
-          if (err) {
-            if (err.message === 'Port is opening') {
-              resolve();
-            } else {
-              reject(err);
-            }
-          } else {
-            resolve();
-          }
-        });
+    if (this.conn.isOpen()) {
+      return;
+    }
+    try {
+      await this.conn.open();
+    } catch (err) {
+      if (err.message !== 'Port is opening') {
+        throw err;
       }
-    });
+    }
   }
 
   async send(buffer: Buffer): Promise<void> {
+    await this.conn.write(buffer);
+  }
+
+  async receive(): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      this.serialPort.write(buffer, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
+      const unsubscribe = this.conn.subscribe((buf: Buffer) => {
+        if (buf.includes('\r\nOK\r\n') || buf.includes('\r\nERROR\r\n')) {
+          unsubscribe();
+          resolve(buf);
         }
       });
     });
   }
 
-  async receive(): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const f = (buf: Buffer) => {
-        if (buf.includes('\r\nOK\r\n') || buf.includes('\r\nERROR\r\n')) {
-          this.serialPort.off('data', f);
-          resolve(buf);
-        }
-      };
-      this.serialPort.on('data', f);
-    });
-  }
-
   async disconnect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.serialPort.isOpen) {
-        resolve();
-      } else {
-        this.serialPort.close((err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      }
-    });
+    if (this.conn.isOpen()) {
+      await this.conn.close();
+    }
   }
 
   static create(port: string): ATCommunicator {
-    return new ATCommunicator(new SerialPort(port, {
-      baudRate: 115200
-    }));
+    return new ATCommunicator(SerialConnection.create(port));
   }
 
 }
