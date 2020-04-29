@@ -1,6 +1,6 @@
 export type Response = {
-    status: number,
-    size: number,
-    value: Buffer,
-    parity: number
+  status: number,
+  size: number,
+  value: Buffer,
+  parity: number
 };

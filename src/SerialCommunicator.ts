@@ -32,11 +32,11 @@ export class SerialCommunicator implements Communicator {
   async send(buffer: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       this.serialPort.write(buffer, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
       });
     });
   }
@@ -68,5 +68,5 @@ export class SerialCommunicator implements Communicator {
       }
     });
   }
-  
+
 }

@@ -4,7 +4,7 @@ import { hexlify, calcParity, formatAtCommand, parseResponse } from './util';
 describe('formatAtCommand', () => {
   it('return at command string', () => {
     assert(formatAtCommand(0x01) === 'AT*PIC=01000001\r\n');
-    assert(formatAtCommand(0x02, Buffer.from([1,2])) === 'AT*PIC=020200010203\r\n');
+    assert(formatAtCommand(0x02, Buffer.from([1, 2])) === 'AT*PIC=020200010203\r\n');
   });
 });
 
