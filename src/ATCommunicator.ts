@@ -1,7 +1,7 @@
 import * as SerialPort from 'serialport';
 import { Communicator } from "./Communicator";
 
-export class SerialCommunicator implements Communicator {
+export class ATCommunicator implements Communicator {
 
   private serialPort: SerialPort
 
@@ -69,8 +69,8 @@ export class SerialCommunicator implements Communicator {
     });
   }
 
-  static create(port: string): SerialCommunicator {
-    return new SerialCommunicator(new SerialPort(port, {
+  static create(port: string): ATCommunicator {
+    return new ATCommunicator(new SerialPort(port, {
       baudRate: 115200
     }));
   }

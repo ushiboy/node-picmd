@@ -1,5 +1,5 @@
 import { Communicator } from './Communicator';
-import { SerialCommunicator } from './SerialCommunicator';
+import { ATCommunicator } from './ATCommunicator';
 import { Response } from './data';
 import { formatAtCommand, parseResponse } from './util';
 
@@ -24,6 +24,6 @@ export class PiCmd {
   }
 
   static connect(port: string): PiCmd {
-    return new PiCmd(SerialCommunicator.create(port));
+    return new PiCmd(ATCommunicator.create(port));
   }
 }
