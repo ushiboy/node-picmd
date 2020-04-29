@@ -1,4 +1,3 @@
-import * as SerialPort from 'serialport';
 import { Communicator } from './Communicator';
 import { SerialCommunicator } from './SerialCommunicator';
 import { Response } from './data';
@@ -25,8 +24,6 @@ export class PiCmd {
   }
 
   static connect(port: string): PiCmd {
-    return new PiCmd(new SerialCommunicator(new SerialPort(port, {
-      baudRate: 115200
-    })));
+    return new PiCmd(SerialCommunicator.create(port));
   }
 }

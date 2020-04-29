@@ -69,4 +69,10 @@ export class SerialCommunicator implements Communicator {
     });
   }
 
+  static create(port: string): SerialCommunicator {
+    return new SerialCommunicator(new SerialPort(port, {
+      baudRate: 115200
+    }));
+  }
+
 }
