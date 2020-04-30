@@ -29,10 +29,14 @@ export class ATCommunicator implements Communicator {
 
   async receive(): Promise<Buffer> {
     return new Promise((resolve, reject) => {
+      const buffers = [];
+      let size = 0;
       const unsubscribe = this.conn.subscribe((buf: Buffer) => {
+        buffers.push(buf);
+        size += buf.length;
         if (buf.includes('\r\nOK\r\n') || buf.includes('\r\nERROR\r\n')) {
           unsubscribe();
-          resolve(buf);
+          resolve(Buffer.concat(buffers, size));
         }
       });
     });
