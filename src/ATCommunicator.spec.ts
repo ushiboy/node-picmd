@@ -5,7 +5,8 @@ import { Connection, Unsubscribe } from './Connection';
 type MockConnectionState = {
   opened: boolean,
   openError?: Error,
-  sendBuffers: Buffer[]
+  sendBuffers: Buffer[],
+  receiveBuffers: Buffer[]
 };
 
 class MockConnection implements Connection {
@@ -35,11 +36,26 @@ class MockConnection implements Connection {
 
   subscribe(fn: (buffer: Buffer) => void): Unsubscribe {
     this.subscriber = fn;
-    return () => {};
+    let unsubscribe = false;
+    const p = () => {
+      if (!unsubscribe && this.state.receiveBuffers.length > 0) {
+        const b = this.state.receiveBuffers.shift();
+        this.subscriber(b);
+        process.nextTick(() => {
+          p();
+        });
+      }
+    };
+    process.nextTick(() => {
+      p();
+    });
+    return () => {
+      unsubscribe = true;
+    };
   }
 
-  close(): Promise<void> {
-    throw new Error("Method not implemented.");
+  async close(): Promise<void> {
+    this.state.opened = false;
   }
 
 }
@@ -49,29 +65,25 @@ describe('ATCommunicator', () => {
     it('should open connection', async () => {
       const at = new ATCommunicator(new MockConnection({
         opened: false,
-        sendBuffers: []
+        sendBuffers: [],
+        receiveBuffers: []
       }));
 
-      try {
+      await assert.doesNotReject(async () => {
         await at.connect();
-        assert.ok('Success open');
-      } catch (e) {
-        assert.fail('Fail open');
-      }
+      });
     });
     context('case of already open', () => {
       context('if the isOpen property is true', () => {
         it('should not be an error', async () => {
           const at = new ATCommunicator(new MockConnection({
             opened: true,
-            sendBuffers: []
+            sendBuffers: [],
+            receiveBuffers: []
           }));
-          try {
+          await assert.doesNotReject(async () => {
             await at.connect();
-            assert.ok('Success open');
-          } catch (e) {
-            assert.fail('Fail open');
-          }
+          });
         });
       });
       context('when a "Port opening error" error occurs', () => {
@@ -79,14 +91,12 @@ describe('ATCommunicator', () => {
           const at = new ATCommunicator(new MockConnection({
             opened: false,
             openError: Error('Port is opening'),
-            sendBuffers: []
+            sendBuffers: [],
+            receiveBuffers: []
           }));
-          try {
+          await assert.doesNotReject(async () => {
             await at.connect();
-            assert.ok('Success open');
-          } catch (e) {
-            assert.fail('Fail open');
-          }
+          });
         });
       });
     })
@@ -95,14 +105,15 @@ describe('ATCommunicator', () => {
         const at = new ATCommunicator(new MockConnection({
           opened: false,
           openError: Error('Other'),
-          sendBuffers: []
+          sendBuffers: [],
+          receiveBuffers: []
         }));
-        try {
+        await assert.rejects(async () => {
           await at.connect();
-          assert.fail('Success open');
-        } catch (e) {
-          assert.ok('Fail open');
-        }
+        }, {
+          name: 'Error',
+          message: 'Other'
+        });
       });
     });
   });
@@ -110,7 +121,8 @@ describe('ATCommunicator', () => {
     it('should write a buffer to the connection', async () => {
       const state = {
         opened: true,
-        sendBuffers: []
+        sendBuffers: [],
+        receiveBuffers: []
       };
       const at = new ATCommunicator(new MockConnection(state));
       const b = Buffer.from('test')
@@ -118,13 +130,65 @@ describe('ATCommunicator', () => {
       assert(state.sendBuffers[0] === b);
     });
   });
-  // describe('receive', () => {
-  //   it('should receive command buffer from connection', async () => {
-  //     const state = {
-  //       opened: true,
-  //       sendBuffers: []
-  //     };
-  //     const at = new ATCommunicator(new MockConnection(state));
-  //   });
-  // });
+  describe('receive', () => {
+    it('should receive command buffer from connection', async () => {
+      const at = new ATCommunicator(new MockConnection({
+        opened: true,
+        sendBuffers: [],
+        receiveBuffers: [
+          Buffer.from('*PIC:01000001\r\nOK\r\n'),
+          Buffer.from('*PIC:01000001\r\nERROR\r\n'),
+          Buffer.from('*PIC:02000002'),
+          Buffer.from('\r\nOK\r\n'),
+          Buffer.from('*PIC:02000002'),
+          Buffer.from('\r\nERROR\r\n'),
+          Buffer.from('*PIC:03000003\r\n'),
+          Buffer.from('OK\r\n'),
+          Buffer.from('*PIC:03000003\r\n'),
+          Buffer.from('ERROR\r\n')
+        ]
+      }));
+      const r1 = await at.receive();
+      assert(r1.toString('utf-8') === '*PIC:01000001\r\nOK\r\n');
+      const r2 = await at.receive();
+      assert(r2.toString('utf-8') === '*PIC:01000001\r\nERROR\r\n');
+      const r3 = await at.receive();
+      assert(r3.toString('utf-8') === '*PIC:02000002\r\nOK\r\n');
+      const r4 = await at.receive();
+      assert(r4.toString('utf-8') === '*PIC:02000002\r\nERROR\r\n');
+      const r5 = await at.receive();
+      assert(r5.toString('utf-8') === '*PIC:03000003\r\nOK\r\n');
+      const r6 = await at.receive();
+      assert(r6.toString('utf-8') === '*PIC:03000003\r\nERROR\r\n');
+    });
+    context('timeout', () => {
+      it('should get a timeout error', async () => {
+        const at = new ATCommunicator(new MockConnection({
+          opened: true,
+          sendBuffers: [],
+          receiveBuffers: [
+            Buffer.from('*PIC:01000001\r\nOK\r')
+          ]
+        }));
+        await assert.rejects(async () => {
+          await at.receive(10);
+        }, {
+            name: 'Error',
+            message: 'Timeout'
+        });
+      });
+    });
+  });
+  describe('disconnect', () => {
+    it('should close connection', async () => {
+        const state = {
+          opened: true,
+          sendBuffers: [],
+          receiveBuffers: []
+        };
+        const at = new ATCommunicator(new MockConnection(state));
+        await at.disconnect();
+        assert(state.opened == false);
+    });
+  });
 });

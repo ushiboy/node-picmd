@@ -27,16 +27,20 @@ export class ATCommunicator implements Communicator {
     await this.conn.write(buffer);
   }
 
-  async receive(): Promise<Buffer> {
+  async receive(timeout: number = 60000): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      const buffers = [];
+      const timer = setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, timeout);
+      let buffer = Buffer.alloc(0);
       let size = 0;
       const unsubscribe = this.conn.subscribe((buf: Buffer) => {
-        buffers.push(buf);
         size += buf.length;
-        if (buf.includes('\r\nOK\r\n') || buf.includes('\r\nERROR\r\n')) {
+        buffer = Buffer.concat([buffer, buf], size);
+        if (buffer.includes('\r\nOK\r\n') || buffer.includes('\r\nERROR\r\n')) {
+          clearTimeout(timer);  // cancel reject
           unsubscribe();
-          resolve(Buffer.concat(buffers, size));
+          resolve(buffer);
         }
       });
     });
