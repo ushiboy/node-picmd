@@ -4,7 +4,8 @@ export interface Communicator {
 
   connect(): Promise<void>
 
-  send(buffer: Buffer): Promise<void>
+  send(command: number): Promise<void>
+  send(command: number, data: Buffer): Promise<void>
 
   receive(): Promise<CommandResponse>
   receive(timeout: number): Promise<CommandResponse>

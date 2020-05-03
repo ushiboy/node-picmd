@@ -3,6 +3,7 @@ import { Connection } from "./Connection";
 import { ResponseReceiver } from './ResponseReceiver';
 import { SerialConnection } from "./SerialConnection";
 import { CommandResponse } from './data';
+import { formatAtCommand } from './util';
 
 export class ATCommunicator implements Communicator {
 
@@ -25,8 +26,11 @@ export class ATCommunicator implements Communicator {
     }
   }
 
-  async send(buffer: Buffer): Promise<void> {
-    await this.conn.write(buffer);
+  async send(command: number): Promise<void>
+  async send(command: number, data: Buffer): Promise<void>
+  async send(command: number, data?: Buffer): Promise<void> {
+    const c = formatAtCommand(command, data);
+    await this.conn.write(Buffer.from(c));
   }
 
   async receive(timeout: number = 60000): Promise<CommandResponse> {

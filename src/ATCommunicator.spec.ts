@@ -125,9 +125,8 @@ describe('ATCommunicator', () => {
         receiveBuffers: []
       };
       const at = new ATCommunicator(new MockConnection(state));
-      const b = Buffer.from('test')
-      await at.send(b);
-      assert(state.sendBuffers[0] === b);
+      await at.send(0x01);
+      assert(state.sendBuffers[0].equals(Buffer.from('AT*PIC=01000001\r\n')));
     });
   });
   describe('receive', () => {
@@ -136,32 +135,44 @@ describe('ATCommunicator', () => {
         opened: true,
         sendBuffers: [],
         receiveBuffers: [
-          Buffer.from('*PIC:01000001\r\nOK\r\n'),
-          Buffer.from('*PIC:01000001\r\nERROR\r\n'),
-          Buffer.from('*PIC:02000002'),
+          Buffer.from('*PIC:\x01\x00\x00\x01\r\nOK\r\n'),
+          Buffer.from('*PIC:\x02\x00\x00\x02\r\nERROR\r\n'),
+          Buffer.from('*PIC:\x01\x00\x00\x01'),
           Buffer.from('\r\nOK\r\n'),
-          Buffer.from('*PIC:02000002'),
+          Buffer.from('*PIC:\x02\x00\x00\x02'),
           Buffer.from('\r\nERROR\r\n'),
-          Buffer.from('*PIC:03000003\r\n'),
+          Buffer.from('*PIC:\x01\x00\x00\x01\r\n'),
           Buffer.from('OK\r\n'),
-          Buffer.from('*PIC:03000003\r\n'),
+          Buffer.from('*PIC:\x03\x00\x00\x03\r\n'),
           Buffer.from('ERROR\r\n')
         ]
       }));
       const r1 = await at.receive();
-      assert(r1.toString('utf-8') === '*PIC:01000001\r\nOK\r\n');
+      assert(r1.status === 0x01);
+      assert(r1.size === 0x00);
+      assert(r1.parity === 0x01);
       const r2 = await at.receive();
-      assert(r2.toString('utf-8') === '*PIC:01000001\r\nERROR\r\n');
+      assert(r2.status === 0x02);
+      assert(r2.size === 0x00);
+      assert(r2.parity === 0x02);
       const r3 = await at.receive();
-      assert(r3.toString('utf-8') === '*PIC:02000002\r\nOK\r\n');
+      assert(r3.status === 0x01);
+      assert(r3.size === 0x00);
+      assert(r3.parity === 0x01);
       const r4 = await at.receive();
-      assert(r4.toString('utf-8') === '*PIC:02000002\r\nERROR\r\n');
+      assert(r4.status === 0x02);
+      assert(r4.size === 0x00);
+      assert(r4.parity === 0x02);
       const r5 = await at.receive();
-      assert(r5.toString('utf-8') === '*PIC:03000003\r\nOK\r\n');
+      assert(r5.status === 0x01);
+      assert(r5.size === 0x00);
+      assert(r5.parity === 0x01);
       const r6 = await at.receive();
-      assert(r6.toString('utf-8') === '*PIC:03000003\r\nERROR\r\n');
+      assert(r6.status === 0x03);
+      assert(r6.size === 0x00);
+      assert(r6.parity === 0x03);
     });
-    context('timeout', () => {
+    context('timeout case', () => {
       it('should get a timeout error', async () => {
         const at = new ATCommunicator(new MockConnection({
           opened: true,
