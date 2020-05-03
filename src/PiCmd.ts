@@ -17,8 +17,7 @@ export class PiCmd {
     const c = formatAtCommand(command, data);
     await this.comm.connect();
     await this.comm.send(Buffer.from(c));
-    const buf = await this.comm.receive();
-    const res = parseResponse(buf);
+    const res = await this.comm.receive();
     await this.comm.disconnect();
     return res;
   }

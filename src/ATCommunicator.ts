@@ -1,6 +1,8 @@
 import { Communicator } from "./Communicator";
 import { Connection } from "./Connection";
+import { ResponseReceiver } from './ResponseReceiver';
 import { SerialConnection } from "./SerialConnection";
+import { CommandResponse } from './data';
 
 export class ATCommunicator implements Communicator {
 
@@ -27,20 +29,19 @@ export class ATCommunicator implements Communicator {
     await this.conn.write(buffer);
   }
 
-  async receive(timeout: number = 60000): Promise<Buffer> {
+  async receive(timeout: number = 60000): Promise<CommandResponse> {
     return new Promise((resolve, reject) => {
+      const receiver = new ResponseReceiver();
       const timer = setTimeout(() => {
         reject(new Error('Timeout'));
       }, timeout);
-      let buffer = Buffer.alloc(0);
-      let size = 0;
       const unsubscribe = this.conn.subscribe((buf: Buffer) => {
-        size += buf.length;
-        buffer = Buffer.concat([buffer, buf], size);
-        if (buffer.includes('\r\nOK\r\n') || buffer.includes('\r\nERROR\r\n')) {
+        receiver.store(buf);
+        const res = receiver.pull();
+        if (res) {
           clearTimeout(timer);  // cancel reject
           unsubscribe();
-          resolve(buffer);
+          resolve(res);
         }
       });
     });
