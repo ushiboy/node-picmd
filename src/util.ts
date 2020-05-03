@@ -1,4 +1,4 @@
-import { Response } from './data';
+import { CommandResponse } from './data';
 
 export function formatAtCommand(command: number): string;
 export function formatAtCommand(command: number, data: Buffer): string;
@@ -12,7 +12,7 @@ export function formatAtCommand(command: number, data?: Buffer): string {
   return `AT*PIC=${values.concat([parity]).map(hexlify).join('')}\r\n`;
 }
 
-export function parseResponse(data: Buffer): Response {
+export function parseResponse(data: Buffer): CommandResponse {
   const prefix = data.slice(0, 5).toString('utf-8');
   if (prefix !== '*PIC:') {
     return;

@@ -1,4 +1,4 @@
-export type Response = {
+export type CommandResponse = {
   status: number,
   size: number,
   value: Buffer,

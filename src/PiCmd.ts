@@ -1,6 +1,6 @@
 import { Communicator } from './Communicator';
 import { ATCommunicator } from './ATCommunicator';
-import { Response } from './data';
+import { CommandResponse } from './data';
 import { formatAtCommand, parseResponse } from './util';
 
 export class PiCmd {
@@ -11,9 +11,9 @@ export class PiCmd {
     this.comm = comm;
   }
 
-  async request(command: number): Promise<Response>
-  async request(command: number, data: Buffer): Promise<Response>
-  async request(command: number, data?: Buffer): Promise<Response> {
+  async request(command: number): Promise<CommandResponse>
+  async request(command: number, data: Buffer): Promise<CommandResponse>
+  async request(command: number, data?: Buffer): Promise<CommandResponse> {
     const c = formatAtCommand(command, data);
     await this.comm.connect();
     await this.comm.send(Buffer.from(c));
