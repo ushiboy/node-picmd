@@ -22,6 +22,9 @@ export function parseResponse(data: Buffer): CommandResponse {
   const size = data[1] | (data[2] << 8);
   const value = data.slice(3, 3 + size);
   const parity = data.slice(3 + size)[0];
+  if (parity !== calcParity(Array.from(data.slice(0, 3 + size)))) {
+    throw new Error('Invalid parity');
+  }
   return {
     status,
     size,

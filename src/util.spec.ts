@@ -30,12 +30,11 @@ describe('calcParity', () => {
 
 describe('parseResponse', () => {
   it('return parsed response', () => {
-    const b = Buffer.concat([
-      Buffer.from('*PIC:'),
-      Buffer.from('010200030400', 'hex'),
-      Buffer.from('\r\n')
-    ]);
+    const b = Buffer.from('*PIC:\x01\x02\x00\x03\x04\x04\r\n');
     const r = parseResponse(b);
     assert(r.status === 0x01);
+    assert(r.size === 0x0002);
+    assert(r.value.equals(Buffer.from([0x03, 0x04])));
+    assert(r.parity === 0x04);
   });
 });

@@ -41,11 +41,17 @@ export class ATCommunicator implements Communicator {
       }, timeout);
       const unsubscribe = this.conn.subscribe((buf: Buffer) => {
         receiver.store(buf);
-        const res = receiver.pull();
-        if (res) {
-          clearTimeout(timer);  // cancel reject
+        try {
+          const res = receiver.pull();
+          if (res) {
+            clearTimeout(timer);  // cancel timeout reject
+            unsubscribe();
+            resolve(res);
+          }
+        } catch (e) {
+          clearTimeout(timer);  // cancel timeout reject
           unsubscribe();
-          resolve(res);
+          reject(e);
         }
       });
     });
