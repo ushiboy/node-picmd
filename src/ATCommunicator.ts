@@ -29,8 +29,7 @@ export class ATCommunicator implements Communicator {
   async send(command: number): Promise<void>
   async send(command: number, data: Buffer): Promise<void>
   async send(command: number, data?: Buffer): Promise<void> {
-    const c = formatAtCommand(command, data);
-    await this.conn.write(Buffer.from(c));
+    await this.conn.write(formatAtCommand(command, data));
   }
 
   async receive(timeout: number = 60000): Promise<CommandResponse> {

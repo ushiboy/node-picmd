@@ -1,15 +1,15 @@
 import { CommandResponse } from './data';
 
-export function formatAtCommand(command: number): string;
-export function formatAtCommand(command: number, data: Buffer): string;
-export function formatAtCommand(command: number, data?: Buffer): string {
-  const buf = Array.from(data || []);
+export function formatAtCommand(command: number): Buffer;
+export function formatAtCommand(command: number, data: Buffer): Buffer;
+export function formatAtCommand(command: number, data?: Buffer): Buffer {
+  const buf = Array.from(data || Buffer.alloc(0));
   const size = buf.length;
   const s1 = size & 0x00ff;
   const s2 = (size & 0xff00) >> 8;
   const values = [command, s1, s2].concat(buf);
   const parity = calcParity(values);
-  return `AT*PIC=${values.concat([parity]).map(hexlify).join('')}\r\n`;
+  return Buffer.from(`AT*PIC=${values.concat([parity]).map(hexlify).join('')}\r\n`);
 }
 
 export function parseResponse(data: Buffer): CommandResponse {
