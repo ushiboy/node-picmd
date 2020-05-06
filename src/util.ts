@@ -3,20 +3,19 @@ import { CommandResponse } from './data';
 export function formatAtCommand(command: number): Buffer;
 export function formatAtCommand(command: number, data: Buffer): Buffer;
 export function formatAtCommand(command: number, data?: Buffer): Buffer {
-  const buf = Array.from(data || Buffer.alloc(0));
-  const size = buf.length;
+  data = data || Buffer.alloc(0);
+  const size = data.length;
   const s1 = size & 0x00ff;
   const s2 = (size & 0xff00) >> 8;
-  const values = [command, s1, s2].concat(buf);
-  const parity = calcParity(values);
-  return Buffer.from(`AT*PIC=${values.concat([parity]).map(hexlify).join('')}\r\n`);
+  const values = [command, s1, s2].concat(Array.from(data));
+  const head = Buffer.from('AT*PIC=');
+  const body = Buffer.from(values.concat([calcParity(values)]));
+  const tail = Buffer.from('\r\n');
+  return Buffer.concat([head, body, tail], head.length + body.length + tail.length);
 }
 
 export function parseResponse(data: Buffer): CommandResponse {
   const prefix = data.slice(0, 5).toString('utf-8');
-  if (prefix !== '*PIC:') {
-    return;
-  }
   data = data.slice(5);
   const status = data[0];
   const size = data[1] | (data[2] << 8);
@@ -31,10 +30,6 @@ export function parseResponse(data: Buffer): CommandResponse {
     value,
     parity
   };
-}
-
-export function hexlify(value: number): string {
-  return ('00' + (value).toString(16)).slice(-2);
 }
 
 export function calcParity(values: number[]): number {
