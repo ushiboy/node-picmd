@@ -126,7 +126,8 @@ describe('ATCommunicator', () => {
       };
       const at = new ATCommunicator(new MockConnection(state));
       await at.send(0x01);
-      assert(state.sendBuffers[0].equals(Buffer.from('AT*PIC=01000001\r\n')));
+      assert(state.sendBuffers[0]
+        .equals(Buffer.from('AT*PIC=\x01\x00\x00\x01\r\n')));
     });
   });
   describe('receive', () => {
