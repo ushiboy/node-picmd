@@ -1,9 +1,15 @@
 import { Communicator } from './Communicator';
 import { ATCommunicator } from './ATCommunicator';
 import { CommandResponse } from './data';
-import { formatAtCommand, parseResponse } from './util';
 
-export class PiCmd {
+export interface PiCmdInterface {
+
+  request(command: number): Promise<CommandResponse>
+  request(command: number, data: Buffer): Promise<CommandResponse>
+
+}
+
+export class PiCmd implements PiCmdInterface {
 
   private comm: Communicator
 
@@ -16,9 +22,12 @@ export class PiCmd {
   async request(command: number, data?: Buffer): Promise<CommandResponse> {
     await this.comm.connect();
     await this.comm.send(command, data);
-    const res = await this.comm.receive();
-    await this.comm.disconnect();
-    return res;
+    try {
+      const res = await this.comm.receive();
+      return res;
+    } finally {
+      await this.comm.disconnect();
+    }
   }
 
   static connect(port: string): PiCmd {
