@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES5",
     "module": "CommonJS",
+    "declaration": true,
     "outDir": "lib"
   },
   "include": [
