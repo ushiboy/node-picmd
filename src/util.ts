@@ -15,7 +15,6 @@ export function formatAtCommand(command: number, data?: Buffer): Buffer {
 }
 
 export function parseResponse(data: Buffer): CommandResponse {
-  const prefix = data.slice(0, 5).toString('utf-8');
   data = data.slice(5);
   const status = data[0];
   const size = data[1] | (data[2] << 8);
