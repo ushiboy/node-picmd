@@ -2,13 +2,13 @@ export type Unsubscribe = () => void;
 
 export interface Connection {
 
-  isOpen(): boolean
+  isOpen(): boolean;
 
-  open(): Promise<void>
+  open(): Promise<void>;
 
-  write(buffer: Buffer): Promise<void>
+  write(buffer: Buffer): Promise<void>;
 
-  subscribe(fn : (buffer: Buffer) => void): Unsubscribe
+  subscribe(fn: (buffer: Buffer) => void): Unsubscribe;
 
-  close(): Promise<void>
+  close(): Promise<void>;
 }

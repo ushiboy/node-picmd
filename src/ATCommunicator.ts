@@ -1,7 +1,7 @@
-import { Communicator } from "./Communicator";
-import { Connection } from "./Connection";
+import { Communicator } from './Communicator';
+import { Connection } from './Connection';
 import { ResponseReceiver } from './ResponseReceiver';
-import { SerialConnection } from "./SerialConnection";
+import { SerialConnection } from './SerialConnection';
 import { CommandResponse } from './data';
 import { formatAtCommand } from './util';
 
@@ -32,7 +32,7 @@ export class ATCommunicator implements Communicator {
     await this.conn.write(formatAtCommand(command, data));
   }
 
-  async receive(timeout: number = 60000): Promise<CommandResponse> {
+  async receive(timeout = 60000): Promise<CommandResponse> {
     return new Promise((resolve, reject) => {
       const receiver = new ResponseReceiver();
       const timer = setTimeout(() => {

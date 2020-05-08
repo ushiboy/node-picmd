@@ -39,7 +39,7 @@ export class SerialConnection implements Connection {
 
   subscribe(fn: (buffer: Buffer) => void): Unsubscribe {
     this.serialPort.on('data', fn);
-    return () => {
+    return (): void => {
       this.serialPort.off('data', fn);
     };
   }
