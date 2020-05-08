@@ -49,7 +49,14 @@ class MockCommunicator implements Communicator {
     if (this.state.responseError) {
       throw this.state.responseError;
     }
-    return this.state.responses.shift();
+    if (this.state.responses.length > 0) {
+      return this.state.responses.shift();
+    }
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, timeout);
+    });
   }
 
   async disconnect(): Promise<void> {
@@ -97,6 +104,26 @@ describe('PiCmd', () => {
       assert(r.size === 0x00);
       assert(r.value.length === 0);
       assert(r.parity === 0x01);
+    });
+    it('should be an error if it times out', async () => {
+      const state = {
+        sendCommands: []
+      };
+      const pi = new PiCmd(new MockCommunicator(state));
+      await assert.rejects(async () => {
+        await pi.request(0x01, 10);
+      }, {
+        message: 'Timeout'
+      });
+      assert(state.sendCommands[0].command === 0x01);
+
+      await assert.rejects(async () => {
+        await pi.request(0x02, Buffer.from([0x01]), 10);
+      }, {
+        message: 'Timeout'
+      });
+      assert(state.sendCommands[1].command === 0x02);
+      assert(state.sendCommands[1].data.equals(Buffer.from([0x01])));
     });
     it('should close the connection in case of an error', async () => {
       const state = {
