@@ -43,7 +43,7 @@ Create an instance of PiCmd by passing the serial port path.
   * The instance of PiCmd.
   * type: PiCmd
 
-#### `request(command: number, data?: Buffer): Promise<CommandResponse>`
+#### `request(command: number, data?: Buffer, timeout?: number): Promise<CommandResponse>`
 
 Send a command and return a response.
 
@@ -55,6 +55,10 @@ Send a command and return a response.
   * data
     * The data of the command to be sent.
     * type: Buffer
+  * timeout
+    * Timeout waiting for a command response.
+    * type: number
+    * default: `60000` ms
 * return
   * The result of the execution of the command.
   * type: CommandResponse
