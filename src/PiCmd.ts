@@ -39,19 +39,6 @@ export class PiCmd implements PiCmdInterface {
     }
   }
 
-  // async request(command: number, timeout?: number): Promise<CommandResponse>
-  // async request(command: number, data: Buffer, timeout?: number): Promise<CommandResponse>
-  // async request(command: number, data?: Buffer): Promise<CommandResponse> {
-  //   await this.comm.connect();
-  //   await this.comm.send(command, data);
-  //   try {
-  //     const res = await this.comm.receive();
-  //     return res;
-  //   } finally {
-  //     await this.comm.disconnect();
-  //   }
-  // }
-
   static connect(port: string): PiCmd {
     return new PiCmd(ATCommunicator.create(port));
   }
