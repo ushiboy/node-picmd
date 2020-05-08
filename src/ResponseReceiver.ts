@@ -33,7 +33,7 @@ export class ResponseReceiver {
     return this.responseSize;
   }
 
-  store(buffer: Buffer) {
+  store(buffer: Buffer): void {
     let size = this.buffered.length + buffer.length;
     this.buffered = Buffer.concat([this.buffered, buffer], size);
 

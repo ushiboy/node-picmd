@@ -1,5 +1,11 @@
 import { CommandResponse } from './data';
 
+export function calcParity(values: number[]): number {
+  return values.reduce((p, v) => {
+    return p ^ v;
+  }, 0x00);
+}
+
 export function formatAtCommand(command: number): Buffer;
 export function formatAtCommand(command: number, data: Buffer): Buffer;
 export function formatAtCommand(command: number, data?: Buffer): Buffer {
@@ -29,10 +35,4 @@ export function parseResponse(data: Buffer): CommandResponse {
     value,
     parity
   };
-}
-
-export function calcParity(values: number[]): number {
-  return values.reduce((p, v) => {
-    return p ^ v;
-  }, 0x00);
 }

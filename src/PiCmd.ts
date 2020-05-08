@@ -4,8 +4,8 @@ import { CommandResponse } from './data';
 
 export interface PiCmdInterface {
 
-  request(command: number): Promise<CommandResponse>
-  request(command: number, data: Buffer): Promise<CommandResponse>
+  request(command: number): Promise<CommandResponse>;
+  request(command: number, data: Buffer): Promise<CommandResponse>;
 
 }
 
