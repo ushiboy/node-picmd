@@ -12,7 +12,8 @@ type MockCommState = {
   connected?: boolean,
   sendCommands?: SendCommand[]
   responses?: CommandResponse[],
-  responseError?: Error
+  responseError?: Error,
+  pong?: boolean
 };
 
 class MockCommunicator implements Communicator {
@@ -29,13 +30,20 @@ class MockCommunicator implements Communicator {
     if (state.responses == null) {
       state.responses = [];
     }
+    if (state.pong == null) {
+      state.pong = true;
+    }
     this.state = state;
   }
 
   async connect(): Promise<void> {
     this.state.connected = true;
   }
-  
+
+  async ping(timeout: number): Promise<boolean> {
+    return this.state.pong;
+  }
+
   async send(command: number): Promise<void>;
   async send(command: number, data: Buffer): Promise<void>;
   async send(command: any, data?: Buffer) {
