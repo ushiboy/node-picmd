@@ -4,7 +4,8 @@ import { CommandResponse } from './data';
 
 export interface PiCmdInterface {
 
-  ping(timeout?: number): Promise<boolean>;
+  ping(): Promise<boolean>;
+  ping(timeout: number): Promise<boolean>;
 
   request(command: number, timeout?: number): Promise<CommandResponse>;
   request(command: number, data: Buffer, timeout?: number): Promise<CommandResponse>;
@@ -19,12 +20,10 @@ export class PiCmd implements PiCmdInterface {
     this.comm = comm;
   }
 
-  async ping(timeout?: number): Promise<boolean> {
-    timeout = timeout || 10000;
+  async ping(timeout = 10000): Promise<boolean> {
     await this.comm.connect();
     try {
-      const res = await this.comm.ping(timeout);
-      return res;
+      return await this.comm.ping(timeout);
     } finally {
       await this.comm.disconnect();
     }
