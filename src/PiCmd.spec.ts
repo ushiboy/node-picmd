@@ -13,7 +13,7 @@ type MockCommState = {
   sendCommands?: SendCommand[]
   responses?: CommandResponse[],
   responseError?: Error,
-  pong?: boolean
+  pongError?: Error
 };
 
 class MockCommunicator implements Communicator {
@@ -30,9 +30,6 @@ class MockCommunicator implements Communicator {
     if (state.responses == null) {
       state.responses = [];
     }
-    if (state.pong == null) {
-      state.pong = true;
-    }
     this.state = state;
   }
 
@@ -40,8 +37,12 @@ class MockCommunicator implements Communicator {
     this.state.connected = true;
   }
 
-  async ping(timeout: number): Promise<boolean> {
-    return this.state.pong;
+  async ping(timeout: number): Promise<void> {
+    if (this.state.pongError != null) {
+      return new Promise((_, reject) => {
+        reject(this.state.pongError);
+      });
+    }
   }
 
   async send(command: number): Promise<void>;
@@ -73,6 +74,28 @@ class MockCommunicator implements Communicator {
 }
 
 describe('PiCmd', () => {
+  describe('ping', () => {
+    it('should end with sending a PING request and receiving a PONG response', async () => {
+      const state = {
+        connected: false
+      };
+      const pi = new PiCmd(new MockCommunicator(state));
+      await assert.doesNotReject(async () => {
+        await pi.ping();
+      });
+    });
+    it('should be an error if the PONG response could not be received', async () => {
+      const state = {
+        pongError: new Error('Timeout')
+      };
+      const pi = new PiCmd(new MockCommunicator(state));
+      await assert.rejects(async () => {
+        await pi.ping(1);
+      }, {
+        message: 'Timeout'
+      });
+    });
+  });
   describe('request', () => {
     it('should send a command and return a command response', async () => {
       const state = {
