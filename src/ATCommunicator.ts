@@ -1,5 +1,6 @@
 import { Communicator } from './Communicator';
 import { Connection } from './Connection';
+import { PongReceiver } from './PongReceiver';
 import { ResponseReceiver } from './ResponseReceiver';
 import { SerialConnection } from './SerialConnection';
 import { CommandResponse } from './data';
@@ -24,6 +25,29 @@ export class ATCommunicator implements Communicator {
         throw err;
       }
     }
+  }
+
+  async ping(timeout: number): Promise<void> {
+    await this.conn.write(Buffer.from('AT\r\n'));
+    return new Promise((resolve, reject) => {
+      const receiver = new PongReceiver();
+      const timer = setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, timeout);
+      const unsubscribe = this.conn.subscribe((buf: Buffer) => {
+        receiver.store(buf);
+        const res = receiver.pull();
+        if (res === true) {
+          clearTimeout(timer);  // cancel timeout reject
+          unsubscribe();
+          resolve();
+        } else if (res === false) {
+          clearTimeout(timer);  // cancel timeout reject
+          unsubscribe();
+          reject(new Error('Invalid Response'));
+        }
+      });
+    });
   }
 
   async send(command: number): Promise<void>
