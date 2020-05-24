@@ -109,6 +109,56 @@ describe('ATCommunicator', () => {
       });
     });
   });
+  describe('ping', () => {
+    it('should not result in an error if it receives a PONG response', async () => {
+      const state = {
+        opened: true,
+        sendBuffers: [],
+        receiveBuffers: [
+          Buffer.from('\r\nOK\r\n')
+        ]
+      };
+      const at = new ATCommunicator(new MockConnection(state));
+      await assert.doesNotReject(async () => {
+        await at.ping(10);
+      });
+      assert(state.sendBuffers[0]
+        .equals(Buffer.from('AT\r\n')));
+    });
+    it('should result in an error if the PONG response could not be received', async () => {
+      const state = {
+        opened: true,
+        sendBuffers: [],
+        receiveBuffers: [
+          Buffer.from('\r\nERROR\r\n')
+        ]
+      };
+      const at = new ATCommunicator(new MockConnection(state));
+      await assert.rejects(async () => {
+        await at.ping(1);
+      }, {
+        name: 'Error',
+        message: 'Invalid Response'
+      });
+      assert(state.sendBuffers[0]
+        .equals(Buffer.from('AT\r\n')));
+    });
+    it('should be an error if it times out', async () => {
+      const state = {
+        opened: true,
+        sendBuffers: []
+      };
+      const at = new ATCommunicator(new MockConnection(state));
+      await assert.rejects(async () => {
+        await at.ping(1);
+      }, {
+        name: 'Error',
+        message: 'Timeout'
+      });
+      assert(state.sendBuffers[0]
+        .equals(Buffer.from('AT\r\n')));
+    });
+  });
   describe('send', () => {
     it('should write a buffer of AT commands', async () => {
       const state = {

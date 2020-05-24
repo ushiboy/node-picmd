@@ -27,7 +27,7 @@ export class ATCommunicator implements Communicator {
     }
   }
 
-  async ping(timeout: number): Promise<boolean> {
+  async ping(timeout: number): Promise<void> {
     await this.conn.write(Buffer.from('AT\r\n'));
     return new Promise((resolve, reject) => {
       const receiver = new PongReceiver();
@@ -37,10 +37,14 @@ export class ATCommunicator implements Communicator {
       const unsubscribe = this.conn.subscribe((buf: Buffer) => {
         receiver.store(buf);
         const res = receiver.pull();
-        if (res != null) {
+        if (res === true) {
           clearTimeout(timer);  // cancel timeout reject
           unsubscribe();
-          resolve(res);
+          resolve();
+        } else if (res === false) {
+          clearTimeout(timer);  // cancel timeout reject
+          unsubscribe();
+          reject(new Error('Invalid Response'));
         }
       });
     });

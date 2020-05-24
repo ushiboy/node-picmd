@@ -4,7 +4,7 @@ export interface Communicator {
 
   connect(): Promise<void>;
 
-  ping(timeout: number): Promise<boolean>;
+  ping(timeout: number): Promise<void>;
 
   send(command: number): Promise<void>;
   send(command: number, data: Buffer): Promise<void>;
