@@ -43,6 +43,16 @@ Create an instance of PiCmd by passing the serial port path.
   * The instance of PiCmd.
   * type: PiCmd
 
+#### `ping(timeout?: number): Promise<void>`
+
+Send a ping command.
+
+* optional parameters
+  * timeout
+    * Timeout waiting for a ping command response.
+    * type: number
+    * default: `10000` ms
+
 #### `request(command: number, data?: Buffer, timeout?: number): Promise<CommandResponse>`
 
 Send a command and return a response.
