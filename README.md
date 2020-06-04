@@ -1,7 +1,7 @@
 node-picmd
 =====
 
-The node-picmd is a client library for [picmd](https://github.com/ushiboy/pi-cmd).
+The node-picmd is a client library for [picmd](https://github.com/ushiboy/picmd).
 
 ## Overview
 
