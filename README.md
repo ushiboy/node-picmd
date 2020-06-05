@@ -51,7 +51,7 @@ Send a ping command.
   * timeout
     * Timeout waiting for a ping command response.
     * type: number
-    * default: `10000` ms
+    * default: `2000` ms
 
 #### `request(command: number, data?: Buffer, timeout?: number): Promise<CommandResponse>`
 
