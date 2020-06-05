@@ -20,7 +20,7 @@ export class PiCmd implements PiCmdInterface {
     this.comm = comm;
   }
 
-  async ping(timeout = 10000): Promise<void> {
+  async ping(timeout = 2000): Promise<void> {
     await this.comm.connect();
     try {
       await this.comm.ping(timeout);
