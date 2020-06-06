@@ -4,6 +4,9 @@ import { CommandResponse } from './data';
 
 export interface PiCmdInterface {
 
+  waitReady(): Promise<void>;
+  waitReady(retry: number): Promise<void>;
+
   ping(): Promise<void>;
   ping(timeout: number): Promise<void>;
 
@@ -20,7 +23,24 @@ export class PiCmd implements PiCmdInterface {
     this.comm = comm;
   }
 
-  async ping(timeout = 10000): Promise<void> {
+  async waitReady(retry = 20): Promise<void> {
+    let count = 0;
+    const waitFor = async (): Promise<void> => {
+      try {
+        await this.ping();
+      } catch {
+        if (count < retry) {
+          count++;
+          await waitFor();
+        } else {
+          throw new Error('Over the time limit');
+        }
+      }
+    };
+    await waitFor();
+  }
+
+  async ping(timeout = 2000): Promise<void> {
     await this.comm.connect();
     try {
       await this.comm.ping(timeout);

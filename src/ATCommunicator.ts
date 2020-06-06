@@ -1,3 +1,4 @@
+/*eslint prefer-const: ["error", {"ignoreReadBeforeAssign": true}]*/
 import { Communicator } from './Communicator';
 import { Connection } from './Connection';
 import { PongReceiver } from './PongReceiver';
@@ -31,10 +32,12 @@ export class ATCommunicator implements Communicator {
     await this.conn.write(Buffer.from('AT\r\n'));
     return new Promise((resolve, reject) => {
       const receiver = new PongReceiver();
+      let unsubscribe;
       const timer = setTimeout(() => {
+        unsubscribe();
         reject(new Error('Timeout'));
       }, timeout);
-      const unsubscribe = this.conn.subscribe((buf: Buffer) => {
+      unsubscribe = this.conn.subscribe((buf: Buffer) => {
         receiver.store(buf);
         const res = receiver.pull();
         if (res === true) {
@@ -59,10 +62,12 @@ export class ATCommunicator implements Communicator {
   async receive(timeout = 60000): Promise<CommandResponse> {
     return new Promise((resolve, reject) => {
       const receiver = new ResponseReceiver();
+      let unsubscribe;
       const timer = setTimeout(() => {
+        unsubscribe();
         reject(new Error('Timeout'));
       }, timeout);
-      const unsubscribe = this.conn.subscribe((buf: Buffer) => {
+      unsubscribe = this.conn.subscribe((buf: Buffer) => {
         receiver.store(buf);
         try {
           const res = receiver.pull();
