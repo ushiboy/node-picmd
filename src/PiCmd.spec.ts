@@ -74,6 +74,28 @@ class MockCommunicator implements Communicator {
 }
 
 describe('PiCmd', () => {
+  describe('waitReady', () => {
+    it('should wait until the PING command succeeds', async () => {
+      const state = {
+        connected: false
+      };
+      const pi = new PiCmd(new MockCommunicator(state));
+      await assert.doesNotReject(async () => {
+        await pi.waitReady();
+      });
+    });
+    it('should be an error if the PING command times out without success', async () => {
+      const state = {
+        pongError: new Error('Timeout')
+      };
+      const pi = new PiCmd(new MockCommunicator(state));
+      await assert.rejects(async () => {
+        await pi.waitReady(1);
+      }, {
+        message: 'Over the time limit'
+      });
+    });
+  });
   describe('ping', () => {
     it('should end with sending a PING request and receiving a PONG response', async () => {
       const state = {
