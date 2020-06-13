@@ -14,7 +14,7 @@ It abstracts the communication specification of picmd and makes it easy to use.
 The sample code for sending the "0x01" command and receiving the response is as follows.
 
 ```javascript
-const { PiCmd } = require('picmd');
+const { PiCmd } = require('@ushiboy/picmd');
 
 (async function() {
   const pic = PiCmd.connect('/dev/ttyUSB0');
@@ -102,6 +102,10 @@ The result of the execution of the command.
     * type: number
 
 ## Change Log
+
+### 0.1.1
+
+Fix example code.
 
 ### 0.1.0
 
