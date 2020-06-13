@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "description": "A client library for picmd",
   "main": "lib/index.js",
+  "repository": "https://github.com/ushiboy/node-picmd",
+  "files": [
+    "src",
+    "lib"
+  ],
   "scripts": {
     "clean": "rm -rf lib",
     "build": "npm run clean && tsc",
